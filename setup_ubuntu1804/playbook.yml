@@ -8,7 +8,7 @@
     - vars/default.yml
 
   tasks:
-    - name: Install Prerequisites
+    - name: Install Aptitude
       apt: name=aptitude update_cache=yes state=latest force_apt_get=yes
 
 # Sudo Group Setup
@@ -25,6 +25,25 @@
         line: '%wheel ALL=(ALL) NOPASSWD: ALL'
         validate: '/usr/sbin/visudo -cf %s'
 
+# Install Packages
+    - name: Update apt packages
+      apt: update_cache=yes
+    
+    - name: Upgrade existing apt packages
+      apt: upgrade=yes
+
+    - name: Install apt packages
+      apt: name={{ sys_packages }} state=latest
+
+    - name: Download Rust Install Script
+      get_url: url=https://sh.rustup.rs dest=/tmp/install_rust.sh
+
+    - name: Mark Installer as Executable
+      file: dest=/tmp/install_rust.sh mode=a+x
+
+    - name: Install Rust
+      shell: /tmp/install_rust.sh -y
+
 # User + Key Setup
     - name: Create a new regular user with sudo privileges
       user:
@@ -33,13 +52,13 @@
         groups: wheel
         append: true
         create_home: true
-        shell: /bin/bash
+        shell: /bin/zsh
 
     - name: Set authorized key for remote user
       authorized_key:
         user: "{{ create_user }}"
         state: present
-        key: "{{ copy_local_key }}"
+        key: "{{ local_key_contents }}"
 
     - name: Disable password authentication for root
       lineinfile:
@@ -48,21 +67,39 @@
         regexp: '^#?PermitRootLogin'
         line: 'PermitRootLogin prohibit-password'
 
-# Install Packages
-    - name: Update apt
-      apt: update_cache=yes
+    - name: Download Oh My Zsh
+      get_url: url=https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh dest=/tmp/install_omzh.sh
 
-    - name: Install required system packages
-      apt: name={{ sys_packages }} state=latest
+    - name: Mark Installer as Executable
+      file: dest=/tmp/install_omzh.sh mode=a+x
 
-# UFW Setup
-    - name: UFW - Allow SSH connections
-      ufw:
-        rule: allow
-        name: OpenSSH
+    - name: Install Oh My Zsh
+      become: true
+      become_user: "{{ create_user }}"
+      shell: /tmp/install_omzh.sh --unattended
 
-    - name: UFW - Deny all other incoming traffic by default
-      ufw:
-        state: enabled
-        policy: deny
-        direction: incoming
+    - name: Download Zoxide
+      get_url: url=https://raw.githubusercontent.com/ajeetdsouza/zoxide/master/install.sh dest=/tmp/install_zoxide.sh
+
+    - name: Mark Installer as Executable
+      file: dest=/tmp/install_zoxide.sh mode=a+x
+
+    - name: Install Zoxide
+      shell: /tmp/install_zoxide.sh
+
+    - name: Generate SSH Config Entry
+      debug:
+        msg:
+          - "================================================"
+          - "            Add this to ~/.ssh/config           "
+          - "================================================"
+          - ""
+          - "Host {{ ansible_facts['nodename'] }}"
+          - "  Hostname {{ inventory_hostname }}"
+          - "  User {{ create_user }}"
+          - "  IdentityFile {{ local_key }}"
+          - ""
+
+    - name: Reboot Machine
+      reboot:
+        msg: "Reboot initiated by Ansible"
