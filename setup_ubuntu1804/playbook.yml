@@ -41,9 +41,6 @@
     - name: Mark Installer as Executable
       file: dest=/tmp/install_rust.sh mode=a+x
 
-    - name: Install Rust
-      shell: /tmp/install_rust.sh -y
-
 # User + Key Setup
     - name: Create a new regular user with sudo privileges
       user:
@@ -111,6 +108,11 @@
       ansible.builtin.lineinfile:
         path: /home/{{ create_user }}/.zshrc
         line: source /usr/local/bin/virtualenvwrapper.sh
+
+    - name: Install Rust for user
+      become: true
+      become_user: "{{ create_user }}"
+      shell: /tmp/install_rust.sh -y
 
     - name: Generate SSH Config Entry
       debug:
