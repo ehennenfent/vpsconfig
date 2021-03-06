@@ -2,9 +2,9 @@
 
 format = """
 $time\
+$shlvl\
 $username\
 $hostname\
-$shlvl\
 $directory\
 $git_branch\
 $git_commit\
@@ -38,7 +38,10 @@ disabled = false
 format ="[$time]($style) "
 
 [hostname]
-ssh_only = false
+format = "[$hostname]($style)[:](bold 202)"
+
+[username]
+format = "[$user]($style)[@](bold 202)"
 
 [python]
 python_binary = ["python3", "python"]
