@@ -1,3 +1,26 @@
+# Disable most of the language-specific noise
+
+format = """
+$time\
+$username\
+$hostname\
+$shlvl\
+$directory\
+$git_branch\
+$git_commit\
+$git_state\
+$rust\
+$python\
+$memory_usage\
+$env_var\
+$custom\
+$cmd_duration\
+$line_break\
+$jobs\
+$battery\
+$status\
+$character"""
+
 # disable starship from forcing a new line to be taken. Solved the empty line 
 # at start of terminal
 add_newline = false
@@ -10,11 +33,16 @@ disabled = true
 success_symbol = "[➟](bold green)" 
 error_symbol = "[➟](bold red)" 
 
-[aws]
-disabled = true
-
-[gcloud]
-disabled = true
-
 [time]
-enabled = true
+disabled = false
+format ="[$time]($style) "
+
+[hostname]
+ssh_only = false
+
+[python]
+python_binary = ["python3", "python"]
+format = '${symbol}[(\($virtualenv\))]($style) '
+
+[rust]
+format = "[$symbol]($style)"
