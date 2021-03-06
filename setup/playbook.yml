@@ -70,6 +70,18 @@
     - name: Mark Installer as Executable
       file: dest=/tmp/install_starship.sh mode=a+x
 
+    - name: Download Oh My Zsh
+      get_url: url=https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh dest=/tmp/install_omzh.sh
+
+    - name: Mark Installer as Executable
+      file: dest=/tmp/install_omzh.sh mode=a+x
+
+    - name: Install Oh My Zsh
+      become: true
+      become_user: "{{ create_user }}"
+      shell: /tmp/install_omzh.sh --unattended
+      ignore_errors: yes
+
     - name: Install Starship
       become: true
       become_user: "{{ create_user }}"
