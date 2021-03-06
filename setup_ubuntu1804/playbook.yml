@@ -64,17 +64,33 @@
         regexp: '^#?PermitRootLogin'
         line: 'PermitRootLogin prohibit-password'
 
-    - name: Download Oh My Zsh
-      get_url: url=https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh dest=/tmp/install_omzh.sh
+    - name: Download Starship
+      get_url: url=https://starship.rs/install.sh dest=/tmp/install_starship.sh
 
     - name: Mark Installer as Executable
-      file: dest=/tmp/install_omzh.sh mode=a+x
+      file: dest=/tmp/install_starship.sh mode=a+x
 
-    - name: Install Oh My Zsh
+    - name: Install Starship
       become: true
       become_user: "{{ create_user }}"
-      shell: /tmp/install_omzh.sh --unattended
-      ignore_errors: yes
+      shell: /tmp/install_starship.sh -y
+
+    - name: Add Starship to ZSHRC
+      ansible.builtin.lineinfile:
+        create: true
+        path: /home/{{ create_user }}/.zshrc
+        line: eval "$(starship init zsh)"
+
+    - name: Creates config directory if it doesn't exist
+      file:
+        path: /home/{{ create_user }}/.config/
+        state: directory
+
+    - name: Configure Starship
+      ansible.builtin.copy:
+        src: starship.toml
+        dest: /home/{{ create_user }}/.config/starship.toml
+        owner: "{{ create_user }}"
 
     - name: Download Zoxide
       get_url: url=https://raw.githubusercontent.com/ajeetdsouza/zoxide/master/install.sh dest=/tmp/install_zoxide.sh
@@ -109,6 +125,17 @@
         path: /home/{{ create_user }}/.zshrc
         line: source /usr/local/bin/virtualenvwrapper.sh
 
+    - name: Upload shell extensions
+      ansible.builtin.copy:
+        src: zsh_extensions.sh
+        dest: /home/{{ create_user }}/.zsh_extensions.sh
+        owner: "{{ create_user }}"
+
+    - name: Add custom shell extensions to ZSHRC
+      ansible.builtin.lineinfile:
+        path: /home/{{ create_user }}/.zshrc
+        line: source /home/{{ create_user }}/.zsh_extensions.sh
+  
     - name: Install Rust for user
       become: true
       become_user: "{{ create_user }}"
