@@ -123,6 +123,7 @@
           - "  Hostname {{ inventory_hostname }}"
           - "  User {{ create_user }}"
           - "  IdentityFile {{ local_key }}"
+          - "  ForwardAgent yes"
           - ""
 
     - name: Reboot Machine
