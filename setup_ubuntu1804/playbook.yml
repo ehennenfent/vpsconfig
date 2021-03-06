@@ -87,6 +87,11 @@
     - name: Install Zoxide
       shell: /tmp/install_zoxide.sh
 
+    - name: Add Zoxide to Path
+      ansible.builtin.lineinfile:
+        path: /home/{{ create_user }}/.zshrc
+        line: eval "$(zoxide init zsh)"
+
     - name: Generate SSH Config Entry
       debug:
         msg:
